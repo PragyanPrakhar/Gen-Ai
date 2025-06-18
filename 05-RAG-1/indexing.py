@@ -2,10 +2,10 @@ from dotenv import load_dotenv
 from pathlib import Path
 import os
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_qdrant import QdrantVectorStore
-from custom_embeddings import GitHubEmbeddings
+
 from openai import OpenAI
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
@@ -15,15 +15,11 @@ from qdrant_client.http.models import VectorParams, Distance, PointStruct
 
 load_dotenv()  # Load .env file
 
-token = os.environ["GITHUB_TOKEN"]
-endpoint = "https://models.github.ai/inference" 
+
 
 embedding_model_name = "text-embedding-3-large"
 
-client = OpenAI(
-    base_url=endpoint,
-    api_key=token,
-)
+
 
 # # Init custom embedding model
 # embedding_model = GitHubEmbeddings(endpoint=endpoint, github_token=token)
@@ -32,7 +28,7 @@ client = OpenAI(
 pdf_path=Path(__file__).parent / "nodejs.pdf"
 
 # Here we will load the pdf file and convert it into text
-loader = PyPDFLoader(file_path=pdf_path)
+loader = PyPDFLoader(file_path=str(pdf_path))
 docs=loader.load()
 
 print(f"Loaded {len(docs)} documents from {pdf_path}")
@@ -51,9 +47,10 @@ split_docs = text_splitter.split_documents(documents=docs)
 print(f"Split into {len(split_docs)} chunks")
 
 # Now we will create the embeddings for the split documents
-embedding = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
+embedding_model = OpenAIEmbeddings(
+    model=embedding_model_name
 )
+
 # response = client.embeddings.create(
 #     input=["first phrase", "second phrase", "third phrase"],
 #     model=model_name,
@@ -67,14 +64,9 @@ vector_store = QdrantVectorStore.from_documents(
     documents=split_docs,
     url="http://localhost:6333",
     collection_name="learning_vectors",
-    embedding=embedding,
+    embedding=embedding_model
 )
-client1 = QdrantClient(url="http://localhost:6333")  # adjust URL
-collection_info = client1.get_collection(collection_name="learning_vectors")
+
 
 
 print("✅ Indexing completed with GitHub-hosted embeddings.")
-
-
-print("Quadrant Client payload",collection_info.payload_schema)  # info about stored data
-print("Quadrant client payloadddddddddd",collection_info.vectors_count)  
