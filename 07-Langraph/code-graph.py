@@ -141,7 +141,12 @@ def main():
         "accuracy_percentage": None,
         "isCodingQuestion": None
     }
-    graph_result=graph.invoke(_state)
-    print("Graph Result:", graph_result)
+    #here we are invoking the graph to get the result directly
+    # graph_result=graph.invoke(_state)
+    # print("Graph Result:", graph_result)
+    
+    # we can also stream the result of the graph and display it to enhance the user experience
+    for event in graph.stream(_state):
+        print("Event:->",event)
     
 main()

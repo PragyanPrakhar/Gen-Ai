@@ -40,8 +40,12 @@ def main():
         "query": user,
         "llm_result": None
     }
+    
+    # here we are invoking the graph to get the result directly
     graph_result=graph.invoke(_state)
     print("graph_result",graph_result)
+    
+
     
 
 main()
